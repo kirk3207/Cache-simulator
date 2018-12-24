@@ -42,7 +42,12 @@ int main()
     fout<<"Associaticity: "<<associat<<endl;
     fout<<"Block size: "<<block_size<<endl<<endl;
     fout<<"Indexing bit count: "<<block_Bit<<endl;
-    fout<<"Indexing bits: "<<endl;
+    fout<<"Indexing bits: ";
+    for(int i=0;i<block_Bit;i++)
+    {
+        fout<<31-tag_Bit-i<<" ";
+    }
+    fout<<endl;
     fout<<"Offset bit count: "<<word_Bit<<endl<<endl;
     fout<<".benchmark testcase1"<<endl;
     Reference.open(referenceLocation.str());
