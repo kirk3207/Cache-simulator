@@ -6,8 +6,8 @@
 using namespace std;
 
 int address[32]={0};
-int mem[1024][3]={0}; //0:Valid 1:TAG 2:Data
-int allocation,tag;
+int mem[1024][10]={0}; //0:Valid 1:TAG 2:TAG2 3:TAG3 4:TAG4
+int allocation,tag;    //5:TAG use times 6:TAG2 use times 7:TAG3 ... 9:all miss flag
 int missCount=0;
 
 
@@ -22,8 +22,9 @@ int main()
     string s;
     int addr_Bit,num_of_set,associat,block_size;
     int block_Bit,word_Bit,tag_Bit;
-    cacheLocation<<"cacheA.org";
-    referenceLocation<<"DataReference.lst";
+    int least_used=1;
+    cacheLocation<<"cacheE.org";
+    referenceLocation<<"InstReference_matrix.lst";
     outputLocation<<"index.rpt";
     Cache.open(cacheLocation.str());
     Cache>>s>>addr_Bit;
@@ -85,20 +86,82 @@ int main()
             }
             else
             {
-                if(tag==mem[allocation][1])
+                if(associat==1)
                 {
-                    fout<<"hit"<<endl;
+                    if(tag==mem[allocation][1])
+                    {
+                        fout<<"hit"<<endl;
+                    }
+                    else
+                    {
+                        mem[allocation][1]=tag;
+                        missCount++;
+                        fout<<"miss"<<endl;
+                    }
+
                 }
-                else
+                else if(associat==2)
                 {
-                    mem[allocation][1]=tag;
-                    fout<<"miss"<<endl;
+                    for(int i=1;i<=2;i++)
+                    {
+                        if(tag==mem[allocation][i])
+                        {
+                            mem[allocation][9]=0;
+                            mem[allocation][i+4]+=1;
+                            fout<<"hit"<<endl;
+                            break;
+                        }
+                        mem[allocation][9]=1;
+                    }
+
+                    if(mem[allocation][9]==1)
+                    {
+                        if(mem[allocation][5]<=mem[allocation][6])
+                        {
+                            mem[allocation][1]=tag;
+                            mem[allocation][5]=0;
+                        }
+                        else
+                        {
+                            mem[allocation][2]=tag;
+                            mem[allocation][6]=0;
+                        }
+                        missCount++;
+                        fout<<"miss"<<endl;
+                    }
+                }
+                else if(associat==4)
+                {
+                    for(int i=1;i<=4;i++)
+                    {
+                        if(tag==mem[allocation][i])
+                        {
+                            mem[allocation][9]=0;
+                            mem[allocation][i+4]+=1;
+                            fout<<"hit"<<endl;
+                            break;
+                        }
+                        mem[allocation][9]=1;
+                    }
+
+                    if(mem[allocation][9]==1)
+                    {
+                        for(int i=5;i<=8;i++)
+                        {
+                            if(least_used>mem[allocation][i])
+                            {
+                                least_used=i;
+                            }
+                        }
+                        mem[allocation][least_used-4]=tag;
+                        mem[allocation][least_used]=0;
+                        missCount++;
+                        fout<<"miss"<<endl;
+                    }
                 }
             }
-            mem[allocation][0]=1;
-            mem[allocation][1]=tag;
-
-
+            //mem[allocation][0]=1;
+            //mem[allocation][1]=tag;
         }
     }
     fout<<".end"<<endl<<endl;
