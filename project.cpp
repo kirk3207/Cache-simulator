@@ -23,7 +23,7 @@ int main()
     int addr_Bit,num_of_set,associat,block_size;
     int block_Bit,word_Bit,tag_Bit;
     int least_used=1;
-    cacheLocation<<"cacheE.org";
+    cacheLocation<<"cacheF.org";
     referenceLocation<<"InstReference_matrix.lst";
     outputLocation<<"index.rpt";
     Cache.open(cacheLocation.str());
@@ -40,7 +40,7 @@ int main()
     fout.open(outputLocation.str());
     fout<<"Address bits: "<<addr_Bit<<endl;
     fout<<"Number of sets: "<<num_of_set<<endl;
-    fout<<"Associaticity: "<<associat<<endl;
+    fout<<"Associativity: "<<associat<<endl;
     fout<<"Block size: "<<block_size<<endl<<endl;
     fout<<"Indexing bit count: "<<block_Bit<<endl;
     fout<<"Indexing bits: ";
@@ -50,20 +50,24 @@ int main()
     }
     fout<<endl;
     fout<<"Offset bit count: "<<word_Bit<<endl<<endl;
-    fout<<".benchmark testcase1"<<endl;
+    fout<<".benchmark datarealup"<<endl;
     Reference.open(referenceLocation.str());
 
     while(getline(Reference,s))
     {
+        allocation=0;
+        tag=0;
         if(s==".benchmark datarealup");
         else if(s==".end")break;
         else
         {
-            allocation=0;
-            tag=0;
             for(int i=31;i>=0;i--)
             {
                 address[31-i]=s[i]-48;
+                //fout<<address[i];
+            }
+            for(int i=31;i>=0;i--)
+            {
                 fout<<address[i];
             }
             fout<<" ";
@@ -82,6 +86,7 @@ int main()
                 mem[allocation][0]=1;
                 mem[allocation][1]=tag;
                 missCount++;
+                //cout<<tag<<" "<<allocation<<" "<<"miss"<<endl;
                 fout<<"miss"<<endl;
             }
             else
@@ -91,11 +96,13 @@ int main()
                     if(tag==mem[allocation][1])
                     {
                         fout<<"hit"<<endl;
+                        //cout<<tag<<" "<<allocation<<" "<<"hit"<<endl;
                     }
                     else
                     {
                         mem[allocation][1]=tag;
                         missCount++;
+                        //cout<<tag<<" "<<allocation<<" "<<"miss"<<endl;
                         fout<<"miss"<<endl;
                     }
 
@@ -166,5 +173,7 @@ int main()
     }
     fout<<".end"<<endl<<endl;
     fout<<"Total cache miss count: "<<missCount<<endl;
+    Reference.close();
+    fout.close();
     return 0;
 }
