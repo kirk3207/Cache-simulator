@@ -11,7 +11,7 @@ int allocation,tag;    //5:TAG use times 6:TAG2 use times 7:TAG3 ... 9:all miss 
 int missCount=0;
 
 
-int main()
+int main(int argc, char *argv[])
 {
     ifstream Cache;
     ifstream Reference;
@@ -23,9 +23,13 @@ int main()
     int addr_Bit,num_of_set,associat,block_size;
     int block_Bit,word_Bit,tag_Bit;
     int least_used=1;
-    cacheLocation<<"cacheF.org";
-    referenceLocation<<"InstReference_matrix.lst";
-    outputLocation<<"index.rpt";
+    cacheLocation<<"./"<<argv[1];
+    //cacheLocation<<"cacheF.org";
+    referenceLocation<<"./"<<argv[2];
+    //referenceLocation<<"InstReference_matrix.lst";
+    outputLocation<<"./"<<argv[3];
+    //outputLocation<<"index.rpt";
+
     Cache.open(cacheLocation.str());
     Cache>>s>>addr_Bit;
     Cache>>s>>num_of_set;
@@ -50,15 +54,15 @@ int main()
     }
     fout<<endl;
     fout<<"Offset bit count: "<<word_Bit<<endl<<endl;
-    fout<<".benchmark datarealup"<<endl;
+    //fout<<".benchmark datarealup"<<endl;
     Reference.open(referenceLocation.str());
-
+    getline(Reference,s);
+    fout<<s<<endl;
     while(getline(Reference,s))
     {
         allocation=0;
         tag=0;
-        if(s==".benchmark datarealup");
-        else if(s==".end")break;
+        if(s==".end")break;
         else
         {
             for(int i=31;i>=0;i--)
