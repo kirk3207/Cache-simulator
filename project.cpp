@@ -9,7 +9,8 @@ int address[32]={0};
 int mem[1024][10]={0}; //0:Valid 1:TAG 2:TAG2 3:TAG3 4:TAG4
 int allocation,tag;    //5:TAG use times 6:TAG2 use times 7:TAG3 ... 9:all miss flag
 int missCount=0;
-
+int now;
+int lowestRank=5;
 
 int main(int argc, char *argv[])
 {
@@ -22,13 +23,10 @@ int main(int argc, char *argv[])
     string s;
     int addr_Bit,num_of_set,associat,block_size;
     int block_Bit,word_Bit,tag_Bit;
-    int least_used=1;
+    int least_used=10;
     cacheLocation<<"./"<<argv[1];
-    //cacheLocation<<"cacheF.org";
     referenceLocation<<"./"<<argv[2];
-    //referenceLocation<<"InstReference_matrix.lst";
     outputLocation<<"./"<<argv[3];
-    //outputLocation<<"index.rpt";
 
     Cache.open(cacheLocation.str());
     Cache>>s>>addr_Bit;
@@ -54,12 +52,12 @@ int main(int argc, char *argv[])
     }
     fout<<endl;
     fout<<"Offset bit count: "<<word_Bit<<endl<<endl;
-    //fout<<".benchmark datarealup"<<endl;
     Reference.open(referenceLocation.str());
     getline(Reference,s);
     fout<<s<<endl;
     while(getline(Reference,s))
     {
+        least_used=10000000;
         allocation=0;
         tag=0;
         if(s==".end")break;
@@ -68,7 +66,6 @@ int main(int argc, char *argv[])
             for(int i=31;i>=0;i--)
             {
                 address[31-i]=s[i]-48;
-                //fout<<address[i];
             }
             for(int i=31;i>=0;i--)
             {
@@ -83,14 +80,13 @@ int main(int argc, char *argv[])
             {
                 tag+=address[i+word_Bit+block_Bit]*pow(2,i);
             }
-            //cout<<allocation<<" "<<tag<<" ";
 
             if(mem[allocation][0]==0)   //if not valid
             {
                 mem[allocation][0]=1;
                 mem[allocation][1]=tag;
+                mem[allocation][5]=1;
                 missCount++;
-                //cout<<tag<<" "<<allocation<<" "<<"miss"<<endl;
                 fout<<"miss"<<endl;
             }
             else
@@ -100,26 +96,45 @@ int main(int argc, char *argv[])
                     if(tag==mem[allocation][1])
                     {
                         fout<<"hit"<<endl;
-                        //cout<<tag<<" "<<allocation<<" "<<"hit"<<endl;
                     }
                     else
                     {
                         mem[allocation][1]=tag;
                         missCount++;
-                        //cout<<tag<<" "<<allocation<<" "<<"miss"<<endl;
                         fout<<"miss"<<endl;
                     }
 
                 }
                 else if(associat==2)
                 {
+                    lowestRank=0;
+                    for(int i=5;i<=6;i++)
+                    {
+                        if(mem[allocation][i]!=0)
+                        {
+                            lowestRank++;
+                        }
+                    }
+
                     for(int i=1;i<=2;i++)
                     {
                         if(tag==mem[allocation][i])
                         {
                             mem[allocation][9]=0;
-                            mem[allocation][i+4]+=1;
+                            now=i+4;
                             fout<<"hit"<<endl;
+                            for(int j=5;j<=6;j++)
+                            {
+                                if(j==now);
+                                else if(mem[allocation][j]!=0)
+                                {
+                                    if(mem[allocation][j]<mem[allocation][now])
+                                    {
+                                        mem[allocation][j]++;
+                                    }
+                                }
+                            }
+                            mem[allocation][now]=1;
                             break;
                         }
                         mem[allocation][9]=1;
@@ -127,29 +142,70 @@ int main(int argc, char *argv[])
 
                     if(mem[allocation][9]==1)
                     {
-                        if(mem[allocation][5]<=mem[allocation][6])
+                        for(int i=5;i<=6;i++)
                         {
-                            mem[allocation][1]=tag;
-                            mem[allocation][5]=0;
+                            if(mem[allocation][i]==lowestRank)
+                            {
+                                least_used=i;
+                            }
                         }
-                        else
+                        for(int i=6;i>=5;i--)
                         {
-                            mem[allocation][2]=tag;
-                            mem[allocation][6]=0;
+                            if(mem[allocation][i]==0)
+                            {
+                                least_used=i;
+                            }
+                        }
+
+                        mem[allocation][least_used-4]=tag;
+                        mem[allocation][least_used]=1;
+                        for(int i=5;i<=6;i++)
+                        {
+                            if(i==least_used);
+                            else if(mem[allocation][i]!=0)
+                            {
+                                if(mem[allocation][i]==2);
+                                else
+                                {
+                                    mem[allocation][i]++;
+                                }
+                            }
                         }
                         missCount++;
                         fout<<"miss"<<endl;
                     }
+
                 }
                 else if(associat==4)
                 {
+                    lowestRank=0;
+                    for(int i=5;i<=8;i++)
+                    {
+                        if(mem[allocation][i]!=0)
+                        {
+                            lowestRank++;
+                        }
+                    }
+
                     for(int i=1;i<=4;i++)
                     {
                         if(tag==mem[allocation][i])
                         {
                             mem[allocation][9]=0;
-                            mem[allocation][i+4]+=1;
+                            now=i+4;
                             fout<<"hit"<<endl;
+                            for(int j=5;j<=8;j++)
+                            {
+                                if(j==now);
+                                else if(mem[allocation][j]!=0)
+                                {
+                                    if(mem[allocation][j]<mem[allocation][now])
+                                    {
+                                        mem[allocation][j]++;
+                                    }
+                                }
+                            }
+                            mem[allocation][now]=1;
                             break;
                         }
                         mem[allocation][9]=1;
@@ -159,20 +215,38 @@ int main(int argc, char *argv[])
                     {
                         for(int i=5;i<=8;i++)
                         {
-                            if(least_used>mem[allocation][i])
+                            if(mem[allocation][i]==lowestRank)
                             {
                                 least_used=i;
                             }
                         }
+                        for(int i=8;i>=5;i--)
+                        {
+                            if(mem[allocation][i]==0)
+                            {
+                                least_used=i;
+                            }
+                        }
+
                         mem[allocation][least_used-4]=tag;
-                        mem[allocation][least_used]=0;
+                        mem[allocation][least_used]=1;
+                        for(int i=5;i<=8;i++)
+                        {
+                            if(i==least_used);
+                            else if(mem[allocation][i]!=0)
+                            {
+                                if(mem[allocation][i]==4);
+                                else
+                                {
+                                    mem[allocation][i]++;
+                                }
+                            }
+                        }
                         missCount++;
                         fout<<"miss"<<endl;
                     }
                 }
             }
-            //mem[allocation][0]=1;
-            //mem[allocation][1]=tag;
         }
     }
     fout<<".end"<<endl<<endl;
